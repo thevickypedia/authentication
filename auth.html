@@ -1,0 +1,122 @@
+<html lang="en">
+<head>
+    <title>Symmetric Authentication</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .content {
+            padding-top: 3%;
+            margin: auto;
+            max-width: 30%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        form {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-top: 10px;
+            color: #000000;
+            font-size: large;
+            font-family: 'Courier New', sans-serif;
+            font-weight: normal;
+        }
+
+        input {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 12px;
+            background-color: #000000;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #494949;
+        }
+
+        #hiddenLabel {
+            margin-left: 2%;
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+<div class="content">
+    <form>
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit" onclick="encrypt(event)">Sign In</button>
+    </form>
+</div>
+<label id="hiddenLabel">
+    <textarea rows="6" cols="120" id="hiddenText" onclick="copyTextToClipboard()"></textarea>
+</label>
+<script>
+    async function calculateHash(username, password, timestamp) {
+        const message = username + password + timestamp;
+        const encoder = new TextEncoder();
+        const data = encoder.encode(message);
+        if (crypto.subtle === undefined) {
+            const wordArray = CryptoJS.lib.WordArray.create(data);
+            const hash = CryptoJS.SHA512(wordArray);
+            // Convert the hash to a hexadecimal string and return it
+            return hash.toString(CryptoJS.enc.Hex);
+        } else {
+            const hashBuffer = await crypto.subtle.digest('SHA-512', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            // Convert each byte to a hexadecimal string, pad with zeros, and join them to form the final hash
+            return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+    }
+
+    async function encrypt(event) {
+        event.preventDefault();
+        const username = $("#username").val();
+        const password = $("#password").val();
+        const timestamp = Math.round(new Date().getTime() / 1000);
+        calculateHash(username, password, timestamp)
+            .then(hash => {
+                const authHeaderValue = 'PYS username=' + username + ',Signature=' + hash + ',timestamp=' + timestamp;
+                let label = document.getElementById('hiddenLabel');
+                let textarea = document.getElementById('hiddenText');
+                label.style.display = 'block';
+                textarea.value = authHeaderValue;
+                console.log(authHeaderValue);
+            })
+            .catch(error => console.error(error));
+    }
+
+    function copyTextToClipboard() {
+        console.log("here")
+        let textarea = document.getElementById('hiddenText');
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); // for mobile devices
+        document.execCommand('copy');
+        navigator.clipboard.writeText(textarea.value);
+        alert('Signature copied to clipboard!');
+    }
+</script>
+</body>
+</html>
