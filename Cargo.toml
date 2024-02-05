@@ -1,0 +1,21 @@
+# https://doc.rust-lang.org/cargo/getting-started/first-steps.html#first-steps-with-cargo
+[package]
+name = "Authentication"
+version = "0.0.1"
+description = "Rustic API to stream videos from localhost"
+license = "MIT"
+documentation = "https://thevickypedia.github.io/authentication"
+homepage = "https://github.com/thevickypedia/authentication"
+repository = "https://github.com/thevickypedia/authentication"
+edition = "2021"
+
+[[bin]]
+name = "auth"
+path = "rust/main.rs"
+
+[dependencies]
+base64 = "0.21.7"
+sha2 = "0.10.8"
+rand = "0.8.5"
+fernet = "0.2.1"
+chrono = "0.4.33"

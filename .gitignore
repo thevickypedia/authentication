@@ -1,2 +1,9 @@
-.idea
-venv
+# JetBrains IDE
+.idea/
+
+# Python
+venv/
+
+# Rust
+Cargo.lock
+target/
