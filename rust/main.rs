@@ -1,12 +1,10 @@
 use chrono::Utc;
 
-use crate::secure::base64_encode;
-
 mod secure;
 
 fn encode_auth_header(username: &str, password: &str) -> String {
     let timestamp = Utc::now().timestamp();
-    let signature = secure::calculate_hash(base64_encode(&format!("{}{}{}", username, password, timestamp)));
+    let signature = secure::calculate_hash(secure::base64_encode(&format!("{}{}{}", username, password, timestamp)));
     let statement = format!("PYS username={},Signature={},timestamp={}", username, signature, timestamp);
     statement
 }
@@ -22,7 +20,7 @@ fn decode_auth_header(header: &str, password: &str) {
     println!("{}", &header_signature);
     println!("{}", &header_user);
     println!("{}", &header_timestamp);
-    let expected_signature = secure::calculate_hash(base64_encode(&format!("{}{}{}", header_user, password, header_timestamp)));
+    let expected_signature = secure::calculate_hash(secure::base64_encode(&format!("{}{}{}", header_user, password, header_timestamp)));
     if &expected_signature == *header_signature {
         println!("successful auth")
     } else {
@@ -36,7 +34,14 @@ fn main() {
     let header = encode_auth_header(username, password);
     println!("Authentication Header: {}", &header);
     decode_auth_header(&header, password);
-    // let encoded = base64_encode(username);
-    // let decoded = base64_decode(&encoded);
-    // println!("{}", decoded)
+    let auth = format!("{}{}", username, password);
+    let b64_encoded = secure::base64_encode(&auth);
+    let b64_decoded = secure::base64_decode(&b64_encoded);
+    println!("B64 encoded: {}", b64_encoded);
+    println!("B64 decoded: {}", b64_decoded);
+    let hex_encoded = secure::hex_encode(&auth);
+    let hex_decoded = secure::hex_decode(&hex_encoded);
+    println!("Hex encoded: {}", hex_encoded);
+    println!("Hex decoded: {}", hex_decoded);
+    // todo: Add cryptographic encryption
 }
