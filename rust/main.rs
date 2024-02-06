@@ -22,10 +22,10 @@ fn decode_auth_header(header: &str, password: &str) {
     println!("{}", &header_user);
     println!("{}", &header_timestamp);
     let expected_signature = secure::calculate_hash(secure::base64_encode(&format!("{}{}{}", header_user, password, header_timestamp)));
-    if &expected_signature == *header_signature {
-        println!("successful auth")
+    if expected_signature == *header_signature {
+        println!("Signature Authentication Successful")
     } else {
-        println!("failed auth")
+        println!("Signature Authentication Failed")
     }
 }
 
