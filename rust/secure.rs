@@ -3,7 +3,16 @@ extern crate base64;
 extern crate sha2;
 
 use base64::{Engine as _, engine::general_purpose::URL_SAFE};
+use fernet::Fernet;
 use sha2::{Digest, Sha512};
+use lazy_static::lazy_static;
+
+lazy_static! {
+    pub static ref FERNET: Fernet = Fernet::new(&generate_key()).unwrap();
+}
+fn generate_key() -> String {
+    Fernet::generate_key()
+}
 
 /// Generates hash value for the given payload using sha512 algorithm
 ///
@@ -66,10 +75,12 @@ pub fn hex_decode(value: &str) -> String {
     result
 }
 
-pub fn keygen() -> String {
+#[allow(dead_code)]
+/// Function to generate random key of a desired size.
+pub fn keygen(length: i32) -> String {
     const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     let mut rng = thread_rng();
-    let token: String = (0..64)
+    let token: String = (0..length)
         .map(|_| {
             let idx = rng.gen_range(0..CHARSET.len());
             CHARSET[idx] as char

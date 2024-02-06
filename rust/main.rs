@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use chrono::Utc;
 
 mod secure;
@@ -10,10 +11,10 @@ fn encode_auth_header(username: &str, password: &str) -> String {
 }
 
 fn decode_auth_header(header: &str, password: &str) {
-    let parts = header.split(",").collect::<Vec<_>>();
-    let part0 = parts.first().unwrap().split("=").collect::<Vec<_>>();
-    let part1 = parts.get(1).unwrap().split("=").collect::<Vec<_>>();
-    let part2 = parts.last().unwrap().split("=").collect::<Vec<_>>();
+    let parts = header.split(',').collect::<Vec<_>>();
+    let part0 = parts.first().unwrap().split('=').collect::<Vec<_>>();
+    let part1 = parts.get(1).unwrap().split('=').collect::<Vec<_>>();
+    let part2 = parts.last().unwrap().split('=').collect::<Vec<_>>();
     let header_user = part0.get(1).unwrap();
     let header_signature = part1.get(1).unwrap();
     let header_timestamp = part2.get(1).unwrap();
@@ -43,5 +44,14 @@ fn main() {
     let hex_decoded = secure::hex_decode(&hex_encoded);
     println!("Hex encoded: {}", hex_encoded);
     println!("Hex decoded: {}", hex_decoded);
-    // todo: Add cryptographic encryption
+    let payload = HashMap::from([
+        ("username", username),
+        ("password", password)
+    ]);
+    let encrypted = secure::FERNET.encrypt(serde_json::to_string(&payload).unwrap().as_bytes());
+    println!("Fernet encrypted: {}", encrypted);
+    if let Ok(decrypted) = secure::FERNET.decrypt(&encrypted) {
+        let payload: HashMap<String, String> = serde_json::from_str(&String::from_utf8_lossy(&decrypted)).unwrap();
+        println!("Fernet decrypted: {:?}", payload);
+    }
 }
